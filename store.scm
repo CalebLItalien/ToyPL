@@ -39,31 +39,44 @@
 (define (make-ref-val index)
       (ref-val index))
 
+(define (make-store-entry val)
+  ;; Create a store entry with the value and an initial mark of #f (unmarked).
+  (list val #f))
+
 (define (newref! val)
   (let ((index (find-free-index the-store!)))
-    (if index  ; if index is not #f, a free index was found
-        (begin  ; A free index was found
-          (vector-set! the-store! index val)
-          (make-ref-val index))  ; Wrap the index in a ref-val expval
-        (begin  ; No free index was found, so double the store size
+    (if index
+        (begin
+          (vector-set! the-store! index (make-store-entry val))
+          (make-ref-val index))
+        (begin
           (set! the-store! (double-store-size the-store!))
-          (let ((new-index (find-free-index the-store!)))  ; Now find the first free index in the new store
-            (vector-set! the-store! new-index val)
-            (make-ref-val new-index))))))  ; Wrap the index in a ref-val expval
+          (let ((new-index (find-free-index the-store!)))
+            (vector-set! the-store! new-index (make-store-entry val))
+            (make-ref-val new-index))))))
 
 
 ;; (deref val) takes an expressed value which is a ref-val and returns
 ;; the element in the store at that location.
 (define deref
 (lambda (ref)
-  (vector-ref the-store! (expval->ref ref))))
+  (let ((store-entry (vector-ref the-store! (expval->ref ref))))
+    ;; Assuming the store entry is a list with the value as the first element.
+    (if (pair? store-entry)  ; Check if the store entry is a non-empty list.
+        (car store-entry)  ; Return the value, which is the first element of the list.
+        #f))))  ; If the store entry is not a proper list, something is wrong.
+
 
 ;; (setref! ref val) takes an expressed value ref which a ref-val and
 ;; an expressed value val.  Changes the cell pointed to by the ref-val
 ;; to val.
 (define setref!
 (lambda (ref val)
-  (vector-set! the-store! (expval->ref ref) val)))
+  (let ((index (expval->ref ref)))
+    ;; Get the current entry at the index to preserve the mark bit.
+    (let ((current-entry (vector-ref the-store! index)))
+      ;; Update the value at the index with new value, keeping the mark bit unchanged.
+      (vector-set! the-store! index (cons val (cdr current-entry)))))))
 
 ;; Display the contents of the store
 (define (display-store)
@@ -73,8 +86,12 @@
       (display "The store contains:\n")
       (let loop ((i 0))
         (when (< i size)
-          (display (format "Index ~a: ~a\n" i (vector-ref the-store! i)))
+          (let ((store-entry (vector-ref the-store! i)))
+            (if (pair? store-entry)
+                (display (format "Index ~a: Value: ~a, Marked: ~a\n" i (car store-entry) (cadr store-entry)))
+                (display (format "Index ~a: Free\n" i))))  ; Display free for unallocated or improperly structured entries.
           (loop (+ i 1)))))))
+
 
 ;; (marked) -- Checks whether an object is marked
 ;;(define (marked? object))
