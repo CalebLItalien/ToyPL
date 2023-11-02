@@ -22,9 +22,10 @@
     (loop (+ i 1)))))
 
 (define (double-store-size store)
-(let ((new-size (* 2 (vector-length store))))
-  (let ((new-store (make-vector new-size)))
-    (vector-copy! new-store 0 store 0 (vector-length store))
+(let ((old-size (vector-length store))
+      (new-size (* 2 (vector-length store))))
+  (let ((new-store (make-vector new-size #f)))  ; Initialize all slots to #f
+    (vector-copy! new-store 0 store 0 old-size)
     new-store)))
 
 (define (find-free-index store)
@@ -39,18 +40,17 @@
       (ref-val index))
 
 (define (newref! val)
-      (let ((index (find-free-index the-store!)))
-        (if (not index)  ; if #f, no free index was found.
-            (begin
-              (set! the-store! (double-store-size the-store!))
-              (let ((new-index (quotient (vector-length the-store!) 2)))  ; Calculate the old store size, which is the new free index.
-                (vector-set! the-store! new-index val)
-                (make-ref-val new-index)))  ; Wrap the index in a ref-val expval
-          (begin  ; Else, a free index was found
-            (vector-set! the-store! index val)
-            (make-ref-val index)))))  ; Wrap the index in a ref-val expval
-    
-    
+  (let ((index (find-free-index the-store!)))
+    (if index  ; if index is not #f, a free index was found
+        (begin  ; A free index was found
+          (vector-set! the-store! index val)
+          (make-ref-val index))  ; Wrap the index in a ref-val expval
+        (begin  ; No free index was found, so double the store size
+          (set! the-store! (double-store-size the-store!))
+          (let ((new-index (find-free-index the-store!)))  ; Now find the first free index in the new store
+            (vector-set! the-store! new-index val)
+            (make-ref-val new-index))))))  ; Wrap the index in a ref-val expval
+
 
 ;; (deref val) takes an expressed value which is a ref-val and returns
 ;; the element in the store at that location.

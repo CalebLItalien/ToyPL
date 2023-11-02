@@ -407,7 +407,6 @@
   (lambda ()
     (begin
       (initialize-store!)
-      (display the-store!)
       (display "\n=== Welcome to the LET + LETREC + PROC + HW5 + HW6 + IMP + REF Interpreter === \n\n")
       (read-eval-print (make-init-env)))))
 
