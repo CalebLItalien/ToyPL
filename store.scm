@@ -76,3 +76,33 @@
           (display (format "Index ~a: ~a\n" i (vector-ref the-store! i)))
           (loop (+ i 1)))))))
 
+;; (marked) -- Checks whether an object is marked
+;;(define (marked? object))
+
+;; (mark object) -- Marks an object and all objects it references as in use.
+;;(define (mark object))
+
+;; (mark-all-roots) -- Marks all root references.
+;;(define (mark-all-roots))
+
+;; (sweep) -- Sweeps through the store and collects unmarked objects.
+(define (sweep)
+;; Implementation for sweeping through the store and collecting garbage.
+  (let loop ((i 0))
+    (when (< i (vector-length the-store!))
+    (let ((object (vector-ref the-store! i)))
+      (if (not (marked? object))  ; Assuming there's a way to check if the object is marked
+          (vector-set! the-store! i #f))  ; Reclaim the space if not marked
+      (loop (+ i 1))))))
+
+;; (collect-garbage) -- Runs the garbage collection process.
+(define (collect-garbage)
+  ;; Reset all marks.
+  (unmark-all)
+  ;; Mark phase.
+  (mark-all-roots)
+  ;; Sweep phase.
+  (sweep))
+
+;;(define (unmark-all))
+
