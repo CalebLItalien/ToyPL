@@ -94,7 +94,10 @@
 
 
 ;; (marked) -- Checks whether an object is marked
-;;(define (marked? object))
+(define (marked? object)
+  (if (pair? object)               ; Check if the object is a pair
+    (cdr object)                 ; Return the second element (mark bit)
+    #f))                         ; If it's not a pair, return #f (indicating not marked)
 
 ;; (mark object) -- Marks an object and all objects it references as in use.
 ;;(define (mark object))
@@ -107,10 +110,10 @@
 ;; Implementation for sweeping through the store and collecting garbage.
   (let loop ((i 0))
     (when (< i (vector-length the-store!))
-    (let ((object (vector-ref the-store! i)))
-      (if (not (marked? object))  ; Assuming there's a way to check if the object is marked
-          (vector-set! the-store! i #f))  ; Reclaim the space if not marked
-      (loop (+ i 1))))))
+      (let ((object (vector-ref the-store! i)))
+        (if (not (marked? object))  ; Check if the object is marked
+            (vector-set! the-store! i #f))  ; Reclaim the space if not marked
+        (loop (+ i 1))))))  ; Move to the next index
 
 ;; (collect-garbage) -- Runs the garbage collection process.
 (define (collect-garbage)
