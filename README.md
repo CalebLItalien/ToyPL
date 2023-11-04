@@ -15,7 +15,7 @@
 - Basic data types such as numbers, booleans (true and false), and the empty list.
 - Arithmetic expressions: addition (+), subtraction (-), multiplication (*), and division (/).
 - Relational and equality operators: equal (=), less-than (<).
-- Logical operators: and (and), or (or), not (not).
+- Logical operators: and, or, not.
 - Conditional expressions with if-then-else.
 - Variable bindings with let and immutable global definitions with def!.
 - First-class functions with proc, function calls, and recursive functions with letrec.
