@@ -1,9 +1,5 @@
 ;; helpers.scm
-;; Fall 2023
-
 ;; Contains miscellaneous helper functions.
-
-;; >>> WARNING: Do NOT modify this file unless explicitly instructed to do so. <<<
 
 ;; ================== Error Handling & Display ============================
 
@@ -26,13 +22,11 @@
 )
 
 ;; Displays the exception message.  The input to this function should
-;; be data constructed using (except-val who format data). In the case the
-;; data is not given via an except-val, the function assumes the exception
-;; was thrown by Scheme (not us) and attempts to display it.
+;; be data constructed using (except-val who format data). 
 (define display-exception
 (lambda (e)
   (cond
-   [(except? e)   ;; Raised by us.
+   [(except? e)  
     (cases except e
        [runtime-except-val (who format data) 
                (display "Runtime Error:\n")
@@ -71,13 +65,6 @@
 
 
 ;; ================== Input Prompt & Editor ============================
-
-;; A hack to allow the Scheme expression editor to produce input &
-;; history for our interpreter.  Credit to John Daly for suggesting
-;; this approach.  Not heavily tested, but mostly works like the
-;; Scheme interpreter editor.  If you find bugs or weird behavior let
-;; me know.
-;;
 ;; Known Bugs:
 ;; - Displays scheme error message when inputting a program with
 ;;   mismatched parens.
