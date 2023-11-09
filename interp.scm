@@ -1,14 +1,10 @@
 ;; LET-interp-starter.scm
-;; CSC 370
-;; Fall 2023
 
 (load "helpers.scm")
 
 ;; ================ Parser Definitions ==================================
 
 ;; This defines the translation from the concrete syntax to the abstract syntax.
-;; Whenever  you add to or modify the concrete or abstract syntax the specification
-;; below must be updated.
 
 (define the-grammar
   '(
@@ -160,8 +156,7 @@
 
 ;; Sets up the parser using the above concrete <-> abstract grammars.
 ;; Defines a function call parse that takes a string in the concrete
-;; syntax and returns the corresponding abstract syntax tree. You must
-;; have defined the-grammar first.
+;; syntax and returns the corresponding abstract syntax tree. 
 (load "lex-scan-parse.scm")
 
 ;; ==================== Expressed Values ==================================

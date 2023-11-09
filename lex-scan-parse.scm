@@ -1,11 +1,8 @@
 ;; lex-scan-parse.scm
-;; Fall 2023
 ;; Contains lexical specification and code that generates the scanner
 ;; and parser from the SLLGEN library.
 
 ;; We only need the parse function that this code define.
-
-;; >>> WARNING: Do NOT modify this file unless explicitly instructed to do so. <<<
 
 ;; ================ Scanner Definitions ==================================
 
@@ -39,7 +36,6 @@
 ;; mapping between the concrete and abstract syntax.
 
 ;; This command makes the abstract grammar from the description in the-grammar
-;; With this you don't need to use define-datatypes
 (sllgen:make-define-datatypes the-lexical-spec the-grammar)
 
 (define show-the-datatypes
