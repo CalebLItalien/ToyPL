@@ -304,7 +304,7 @@
 
 ;; ==================== Evaluater =========================================
 
-(define value-of-prog
+(define value-of
   (lambda (prog env)
     (cases program prog
            [a-prog (exp) (cons (value-of-exp exp env) env)]
@@ -448,12 +448,13 @@
              (guard
               [value-of-ex [else (display-exception value-of-ex)]]
               (let*
-		  ([result (value-of-prog abstract-code env)]
+		  ([result (value-of abstract-code env)]
 		   [val (car result)]
 		    [new-env (cdr result)])
 		(display (expval->string val))
 		(set! env new-env)  
 		(newline)
+    (collect-garbage env)
 		))))])
         ;; "Loop".  Notice it is tail recursive.
         (read-eval-print env)]))))

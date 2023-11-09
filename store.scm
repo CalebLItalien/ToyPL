@@ -7,10 +7,9 @@
 (define empty-store
 (lambda ()
   (let ((new-store (make-vector 2)))
-    (vector-fill! new-store #f) ; Fill the vector with false to indicate all slots are free.
+    (vector-fill! new-store #f)
     new-store)))
 
-;; (initialize-store!) sets the-store! to an empty store.
 (define initialize-store!
   (lambda ()
     (set! the-store! (empty-store))))
@@ -24,15 +23,15 @@
 (define (double-store-size store)
 (let ((old-size (vector-length store))
       (new-size (* 2 (vector-length store))))
-  (let ((new-store (make-vector new-size #f)))  ; Initialize all slots to #f
+  (let ((new-store (make-vector new-size #f)))
     (vector-copy! new-store 0 store 0 old-size)
     new-store)))
 
 (define (find-free-index store)
-(let loop ((i 0))
+  (let loop ((i 0))
   (if (= i (vector-length store))
-      #f  ; No free index found, the store is full.
-      (if (eq? (vector-ref store i) #f)  ; Found a free slot.
+      #f 
+      (if (eq? (vector-ref store i) #f)  
           i
           (loop (+ i 1))))))
 
@@ -40,7 +39,6 @@
       (ref-val index))
 
 (define (make-store-entry val)
-  ;; Create a store entry with the value and an initial mark of #f (unmarked).
   (list val #f))
 
 (define (newref! val)
@@ -55,30 +53,19 @@
             (vector-set! the-store! new-index (make-store-entry val))
             (make-ref-val new-index))))))
 
-
-;; (deref val) takes an expressed value which is a ref-val and returns
-;; the element in the store at that location.
 (define deref
 (lambda (ref)
   (let ((store-entry (vector-ref the-store! (expval->ref ref))))
-    ;; Assuming the store entry is a list with the value as the first element.
-    (if (pair? store-entry)  ; Check if the store entry is a non-empty list.
-        (car store-entry)  ; Return the value, which is the first element of the list.
-        #f))))  ; If the store entry is not a proper list, something is wrong.
+    (if (pair? store-entry)  
+        (car store-entry)  
+        #f))))  
 
-
-;; (setref! ref val) takes an expressed value ref which a ref-val and
-;; an expressed value val.  Changes the cell pointed to by the ref-val
-;; to val.
 (define setref!
 (lambda (ref val)
   (let ((index (expval->ref ref)))
-    ;; Get the current entry at the index to preserve the mark bit.
     (let ((current-entry (vector-ref the-store! index)))
-      ;; Update the value at the index with new value, keeping the mark bit unchanged.
       (vector-set! the-store! index (cons val (cdr current-entry)))))))
 
-;; Display the contents of the store
 (define (display-store)
 (if (eq? the-store! 'uninitialized)
     (display "The store is uninitialized.\n")
@@ -89,40 +76,58 @@
           (let ((store-entry (vector-ref the-store! i)))
             (if (pair? store-entry)
                 (display (format "Index ~a: Value: ~a, Marked: ~a\n" i (car store-entry) (cadr store-entry)))
-                (display (format "Index ~a: Free\n" i))))  ; Display free for unallocated or improperly structured entries.
+                (display (format "Index ~a: Free\n" i)))) 
           (loop (+ i 1)))))))
 
 
-;; (marked) -- Checks whether an object is marked
 (define (marked? object)
-  (if (pair? object)               ; Check if the object is a pair
-    (cdr object)                 ; Return the second element (mark bit)
-    #f))                         ; If it's not a pair, return #f (indicating not marked)
+  (if (pair? object)               
+    (cdr object)                 
+    #f))                         
 
-;; (mark object) -- Marks an object and all objects it references as in use.
-;;(define (mark object))
-
-;; (mark-all-roots) -- Marks all root references.
-;;(define (mark-all-roots))
-
-;; (sweep) -- Sweeps through the store and collects unmarked objects.
 (define (sweep)
-;; Implementation for sweeping through the store and collecting garbage.
   (let loop ((i 0))
     (when (< i (vector-length the-store!))
       (let ((object (vector-ref the-store! i)))
-        (if (not (marked? object))  ; Check if the object is marked
-            (vector-set! the-store! i #f))  ; Reclaim the space if not marked
-        (loop (+ i 1))))))  ; Move to the next index
+        (if (not (marked? object))  
+            (vector-set! the-store! i #f))  
+        (loop (+ i 1)))))) 
 
-;; (collect-garbage) -- Runs the garbage collection process.
-(define (collect-garbage)
-  ;; Reset all marks.
-  (unmark-all)
-  ;; Mark phase.
-  (mark-all-roots)
-  ;; Sweep phase.
-  (sweep))
+(define (mark ref-val)
+(let ((index (expval->ref ref-val)))
+  (let ((entry (vector-ref the-store! index)))
+    (if (and (pair? entry) (not (marked? entry))) 
+        (begin
+          (set-cdr! entry (cons #t '())) 
+          (let ((value (car entry)))
+            (when (ref-val? value)
+              (mark value))))))))
 
-;;(define (unmark-all))
+(define (mark-all-env-entries env)
+  (cases environ env
+    [empty-env () '()] 
+    [extend-env (var val env)
+      (if (ref-val? val)
+          (mark val))  
+      (mark-all-env-entries env)]  
+    [extend-env-rec (f-name f-vars f-body env)
+      (let ((closure (newref! (proc-val f-vars f-body env))))
+        (if (ref-val? closure)
+            (mark closure)))
+      (mark-all-env-entries env)] 
+    ))
+
+(define (collect-garbage env)
+  (let ((unmark (lambda (index)
+      (let ((store-entry (vector-ref the-store! index)))
+        (if (and (pair? store-entry) (marked? store-entry))
+            (set-cdr! store-entry #f))))))
+  (do ((i 0 (+ i 1)))
+      ((>= i (vector-length the-store!)))
+    (unmark i)))
+  
+  (mark-all-env-entries env)
+
+  (sweep)
+)
 
