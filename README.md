@@ -1,5 +1,5 @@
 # Toy Programming Language
-- Welcome to a toy programming language (ToyPL), a minimal yet powerful scheme-based language designed for educational purposes and fun experimentation with programming language concepts. ToyPL features an interactive Read-Eval-Print Loop (REPL), a fully-functional lexer and parser, debugging modes, environments, and a store for managing references.
+- ToyPL is a minimal yet powerful scheme-based language designed for educational purposes and fun experimentation with programming language concepts. ToyPL features an interactive Read-Eval-Print Loop (REPL), a fully-functional lexer and parser, debugging modes, environments, and a store for managing references.
 
 - With automatic garbage collection implemented via a straightforward trace-and-sweep algorithm, ToyPL manages memory efficiently.
 
